@@ -1,0 +1,10 @@
+﻿"Symbol";"Value";"Unit";
+"TraceParts.PartNumber";"90-11032020-036195";"";
+"REFERENCE";"LM5JCM-WP";"";
+"TraceParts.PartTitle";"JCM-WP";"";
+"TraceParts.InstanceId";"90-11032020-0361954R3ZX5WMAM0VUDWWHU6MMKXCQ";"";
+"SUPPLIER";"KOWA";"";
+"DESIGN";"2/3"" 5mm F2.8, manual C-Mount, Water proof";"";
+"TRACEPARTS";"TRACEPARTS";"";
+"TraceParts.PartLanguage";"en";"";
+"TraceParts.PartVersion";"1.0.4";"";
