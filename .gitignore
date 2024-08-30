@@ -1,2 +1,5 @@
 # Ignore Solidworks temp files
 ~*
+
+# Ignore Python cache files
+__pycache__/
