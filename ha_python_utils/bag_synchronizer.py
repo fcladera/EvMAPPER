@@ -30,9 +30,9 @@ class BagSynchronizer:
         with open(sync_yaml, "r") as f:
             self.time_sync_dict = yaml.load(f, yaml.SafeLoader)
         # The event camera will provide the reference timing
-        time_offset_ec = self.time_sync_dict["offsets"]["ec"]["time_offset"]  # us
-        time_offset_ec_ns = time_offset_ec * 1000
-        self.reference_time_ns = time_offset_ec_ns
+        time_offset_ec_post_cut = self.time_sync_dict["offsets"]["ec"]["time_offset_post_cut"]  # us
+        time_offset_ec_post_cut_ns = time_offset_ec_post_cut * 1000
+        self.reference_time_ns = time_offset_ec_post_cut_ns
         self.delete_synced_bag()
 
     def delete_synced_bag(self):
@@ -54,8 +54,8 @@ class BagSynchronizer:
             ),
         )
         self.write_flir_messages(writer)
-        self.write_range_messages(writer)
         self.write_ec_messages(writer)
+        self.write_range_messages(writer)
         self.write_vnav_messages(writer)
         self.write_ublox_messages(writer)
         del writer
@@ -231,7 +231,8 @@ class BagSynchronizer:
         decoder = Decoder()
         count_ec = 0
         sequence_started = False
-        time_offset_ec = self.time_sync_dict["offsets"]["ec"]["time_offset"]  # us
+        time_offset_ec_pre_cut = self.time_sync_dict["offsets"]["ec"]["time_offset_pre_cut"]  # us
+        time_offset_ec_post_cut = self.time_sync_dict["offsets"]["ec"]["time_offset_post_cut"]  # us
         for topic, encoded_msg, timestamp in bag_reader.read_all():
             # Wait until we get the first trigger
             if not sequence_started:
@@ -239,19 +240,27 @@ class BagSynchronizer:
                 trig_events = decoder.get_ext_trig_events()
                 if len(trig_events) > 0 and trig_events[0][0] == 1:
                     trigger_ts = trig_events[0][1]
-                    if trigger_ts < time_offset_ec:
+                    if trigger_ts < time_offset_ec_pre_cut:
                         count_ec += 1
                         continue
                     else:
                         sequence_started = True
                         assert first_sample_ec == count_ec
+                        # Delete decoder, will instantiate later
+                        decoder = None
                 elif len(trig_events) > 2:
                     sys.exit("Too many trigger events")
 
             # Just copy the packets afterwards.
             if sequence_started:
-                decoder.decode(encoded_msg)
-                trig_events = decoder.get_ext_trig_events()
+                if decoder is None:
+                    decoder = Decoder()
+                    decoder.decode(encoded_msg)
+                    trig_events = decoder.get_ext_trig_events()
+                    assert trig_events[0][1] == time_offset_ec_post_cut
+                else:
+                    decoder.decode(encoded_msg)
+                    trig_events = decoder.get_ext_trig_events()
                 if len(trig_events) > 0 and trig_events[0][0] == 1:
                     last_ts_timestamp = trig_events[0][1]
                     trig_header = std_msgs.msg.Header()
