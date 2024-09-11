@@ -65,6 +65,9 @@ ALL_OUTPUT_TOPICS = [
     OUTPUT_RANGE_TOPIC,
 ]
 
+# ------------------------------ RECON BAG CONSTANTS ----------------------------
+OUTPUT_RECON_TOPIC = "/event_camera/events/image_raw"
+
 # ------------------------------ SENSOR CONSTANTS -------------------------------
 FLIR_FREQ = 50  # Hz
 EC_TRIGGER_FREQ = 50  # Hz
